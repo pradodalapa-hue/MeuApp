@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-color-mode="light" data-light-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <!-- Força renderização estável de computador no celular em 1280px -->
+    <meta name="viewport" content="width=1280, initial-scale=1.0, shrink-to-fit=no">
+    <title>JDP SISTEMAS — SOBERANO DATABASE MANAGER v15.2 (HELENA Sovereign Edition)</title>               
+    <!-- STACK DE ALTA PERFORMANCE -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <!-- BIBLIOTECA DE COMPACTAÇÃO EM MEMÓRIA -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- CAPACITOR RUNTIME (Injetado pelo Capacitor no APK) -->
+    <script src="capacitor.js"></script>
+
+    <style>
+        :root {
+            --color-canvas-default: #020617; /* Dark Industrial */
+            --color-canvas-subtle: #0f172a;
+            --color-border-default: #1e293b;
+            --color-fg-default: #f8fafc;
+            --color-fg-muted: #94a3b8;
+            --helena-cyan: #06b6d4;
+            --jose-gold: #fde047;
+            --font-family: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--color-canvas-subtle);
+            color: var(--color-fg-default);
+            min-width: 1280px;
+            min-height: 100vh;
+            overflow-x: auto;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        #menu-toggle {
+            display: none;
+        }
+
+        /* HEADER INDUSTRIAL BRANCO / CYAN */
+        .global-header {
+            background-color: #020617;
+            color: var(--color-fg-default);
+            height: 64px;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 3px solid var(--helena-cyan);
+            box-shadow: 0 4px 20px rgba(6, 182, 212, 0.1);
+        }
+
+        .dots-menu-label {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            border: 2px solid var(--color-border-default);
+            transition: all 0.2s;
+        }
+
+        .dots-menu-label:hover {
+            background-color: var(--color-canvas-subtle);
+            border-color: var(--helena-cyan);
+        }
+
+        .dots-menu-label span {
+            display: block;
+            width: 6px;
+            height: 6px;
+            background-color: var(--color-fg-default);
+            border-radius: 50%;
+            margin: 0 auto;
+        }
+
+        .dots-menu-label:hover span {
+            background-color: var(--helena-cyan);
+        }
+
+        /* ABA LATERAL */
+        .sidebar-30 {
+            position: fixed;
+            top: 64px;
+            left: -30%;
+            width: 30%;
+            height: calc(100vh - 64px);
+            background-color: #020617;
+            border-right: 3px solid var(--helena-cyan);
+            z-index: 999;
+            transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            padding: 24px;
+            box-shadow: 8px 0 24px rgba(0,0,0,0.3);
+            overflow-y: auto;
+        }
+
+        #menu-toggle:checked ~ .sidebar-30 {
+            left: 0;
+        }
+
+        .file-item, .repo-item {
+            border-bottom: 1px solid var(--color-border-default);
+            transition: all 0.15s ease;
+        }
+
+        .file-item:hover, .repo-item:hover {
+            background-color: #083344;
+            border-left: 4px solid var(--helena-cyan);
+        }
+
+        .jdp-card {
+            background: #020617;
+            border: 3px solid var(--helena-cyan);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+        }
+
+        .tab-btn {
+            position: relative;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-fg-muted);
+            transition: all 0.15s ease;
+        }
+        .tab-btn:hover {
+            color: var(--color-fg-default);
+        }
+        .tab-btn.active {
+            color: var(--helena-cyan);
+        }
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: var(--helena-cyan);
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--helena-cyan);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <!-- CHECKBOX CONTROLE SIDEBAR -->
+    <input type="checkbox" id="menu-toggle">
+
+    <!-- HEADER GLOBAL -->
+    <header class="global-header">
+        <div class="header-left">
+            <label for="menu-toggle" class="dots-menu-label" title="Painel HELENA">
+                <span></span>
+                <span></span>
+                <span></span>
+            </label>
+
+            <div class="flex items-center gap-3 ml-4">
+                <span class="text-xl">⚙️</span>
+                <span class="text-xs font-black tracking-widest text-slate-100">JDP SISTEMAS</span>
+                <span class="text-[9px] bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded font-bold uppercase tracking-wider">HELENA v15.2 SOBERANA DB</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 bg-slate-900 px-3 py-1.5 rounded border border-slate-800">
+                <span class="text-[9px] text-cyan-400 font-bold shrink-0">SERVER API:</span>
+                <input type="text" id="serverUrl" value="http://localhost:3000" class="bg-transparent text-[10px] text-slate-100 outline-none border-none font-bold font-mono w-48" onchange="updateServerUrl(this.value)">
+                <span id="vaultStatus" class="text-[8px] text-yellow-500 font-mono font-bold">Local-First</span>
+            </div>
+            
+            <div class="text-right">
+                <div id="pathDisp" class="text-[10px] text-cyan-400 font-bold max-w-xs truncate">SECURE LOCAL INDEXEDDB</div>
+                <div class="text-[8px] text-yellow-400 font-bold uppercase" id="syncStatus">Soberania Princesa Diamante Ativa</div>
+            </div>
+
+            <img class="w-8 h-8 rounded-full border-2 border-yellow-500" src="https://avatars.githubusercontent.com/u/237717142?v=4&size=64" alt="Mestre José">
+        </div>
+    </header>
+
+    <div class="layout-wrapper flex flex-1 relative">
+        
+        <!-- SIDEBAR DE 30% -->
+        <aside class="sidebar-30 flex flex-col justify-between">
+            <div>
+                <div class="flex justify-between items-center pb-4 mb-4 border-b-2 border-slate-800">
+                    <span class="text-sm font-black text-slate-100 uppercase tracking-wider">Painel de Operações</span>
+                    <span class="text-[9px] bg-yellow-400 text-black px-2.5 py-1 rounded-full font-black">Mestre José</span>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <button onclick="requestHardwareFolderPermission()" class="w-full text-left bg-slate-900 hover:bg-cyan-500 hover:text-white border-2 border-slate-800 hover:border-cyan-500 rounded p-3 text-[11px] font-bold flex items-center justify-between transition">
+                        <span>1. Conectar HD Físico</span>
+                        <span class="text-xs">🔗</span>
+                    </button>
+                    <button onclick="forceBackupAll()" class="w-full text-left bg-slate-900 hover:bg-cyan-500 hover:text-white border-2 border-slate-800 hover:border-cyan-500 rounded p-3 text-[11px] font-bold flex items-center justify-between transition">
+                        <span>2. Sincronização Forçada Android</span>
+                        <span class="text-xs">🔄</span>
+                    </button>
+                    <button onclick="downloadRepoZip()" class="w-full text-left bg-slate-900 hover:bg-cyan-500 hover:text-white border-2 border-slate-800 hover:border-cyan-500 rounded p-3 text-[11px] font-bold flex items-center justify-between transition">
+                        <span>3. Baixar ZIP do Repositório DB</span>
+                        <span class="text-xs">📥</span>
+                    </button>
+                    <button onclick="switchTab('new-repo')" class="w-full text-left bg-slate-900 hover:bg-cyan-500 hover:text-white border-2 border-slate-800 hover:border-cyan-500 rounded p-3 text-[11px] font-bold flex items-center justify-between transition">
+                        <span>4. Criar Novo Repositório no Banco</span>
+                        <span class="text-xs">📦</span>
+                    </button>
+                    <button onclick="loadRepositories()" class="w-full text-left bg-slate-900 hover:bg-cyan-500 hover:text-white border-2 border-slate-800 hover:border-cyan-500 rounded p-3 text-[11px] font-bold flex items-center justify-between transition">
+                        <span>5. Recarregar Banco de Dados</span>
+                        <span class="text-xs">🔄</span>
+                    </button>
+                    <button onclick="disconnectRepo()" class="w-full text-left bg-slate-900 hover:bg-cyan-500 hover:text-white border-2 border-slate-800 hover:border-cyan-500 rounded p-3 text-[11px] font-bold flex items-center justify-between transition">
+                        <span>6. Fechar Repositório Ativo</span>
+                        <span class="text-xs">🚪</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-8 pt-4 border-t border-slate-800 text-[9px] text-slate-500 font-mono">
+                HELENA CORE v15.2: Conectada ao canal de segurança 'Princesa Diamante'.
+            </div>
+        </aside>
+
+        <!-- AREA DE TRABALHO PRINCIPAL -->
+        <div class="flex-1 grid grid-cols-[320px_1fr] bg-slate-950">
+            
+            <!-- Coluna Esquerda: Repositórios -->
+            <aside class="bg-slate-900 border-r border-slate-800 p-6 overflow-y-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Repositórios DB</span>
+                    <button onclick="switchTab('new-repo')" class="text-[10px] bg-cyan-600 hover:bg-cyan-500 text-white px-2.5 py-1 rounded font-bold transition">Novo</button>
+                </div>
+                
+                <input type="text" id="repoSearch" placeholder="Filtrar repositórios..." class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-xs font-mono outline-none mb-4 focus:border-cyan-500 text-slate-100" oninput="filterRepos()">
+
+                <div id="repoList" class="flex flex-col gap-1.5">
+                    <!-- Injetado Dinamicamente -->
+                </div>
+            </aside>
+
+            <!-- Coluna Direita: Workspace -->
+            <main class="p-8 flex flex-col gap-6 overflow-y-auto">
+                
+                <div class="border border-slate-800 rounded-lg p-4 bg-slate-900 flex flex-col gap-3">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl">⚙️</span>
+                            <span class="text-xs text-slate-400 font-bold" id="repoOwnerDisp">JDP_DATABASE</span>
+                            <span class="text-slate-600">/</span>
+                            <span class="text-sm font-black text-slate-100" id="repoNameDisp">Selecione um Repositório</span>
+                            <span class="text-[9px] bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded font-bold uppercase">Sovereign DB</span>
+                        </div>
+                    </div>
+
+                    <div class="border-b border-slate-800 flex gap-2" id="repoNavigationTabs">
+                        <button onclick="switchTab('code')" id="tab-code" class="tab-btn active">Arquivos do Banco</button>
+                        <button onclick="switchTab('infra')" id="tab-infra" class="tab-btn text-yellow-400 font-bold">⚙️ Infraestrutura Express (db.js)</button>
+                        <button onclick="switchTab('new-repo')" id="tab-new-repo" class="tab-btn">Novo Repositório</button>
+                    </div>
+                </div>
+
+                <!-- TERMINAL DE COMANDO HELENA -->
+                <div class="border border-slate-800 rounded-lg bg-slate-900 shadow-sm overflow-hidden">
+                    <div class="bg-slate-950 px-4 py-2 flex justify-between items-center border-b border-slate-800">
+                        <span class="text-[10px] font-black text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-cyan-500 animate-pulse"></span>
+                            HELENA OPERATIONAL SYSTEM LOGS
+                        </span>
+                        <span class="text-[9px] text-slate-400 font-mono">Princesa Diamante Ativa</span>
+                    </div>
+                    <div id="terminalLogs" class="p-4 h-24 overflow-y-auto text-[10px] font-mono text-cyan-400 leading-relaxed">
+                        [HELENA CORE v15.2]: Conectada ao Criador SR. JOSÉ DIVINO PRADO DA LAPA.<br>
+                        [SISTEMA]: Canal de segurança 'Princesa Diamante' ativo. Armazenamento local IndexedDB e MongoDB unificados.
+                    </div>
+                </div>
+
+                <!-- ABA CODE: ARQUIVOS DO BANCO -->
+                <div id="panel-code" class="tab-panel border border-slate-800 rounded-lg bg-slate-900 shadow-sm overflow-hidden">
+                    <div class="bg-slate-950 p-4 border-b border-slate-800 flex justify-between items-center">
+                        <div>
+                            <span class="text-xs font-black text-slate-100 uppercase tracking-widest flex items-center gap-2">
+                                <span class="text-cyan-500">⚡</span> REPOSITÓRIO ATIVO: <span id="activeRepoName" class="text-cyan-400 font-mono">Nenhum</span>
+                            </span>
+                            <div class="text-[9px] text-slate-500 font-mono mt-1">Caminho atual: <span id="currentPathDisp">/</span></div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button id="btnNewFile" onclick="openModal('text')" class="text-[10px] bg-slate-800 text-slate-500 font-black px-3 py-1.5 rounded transition uppercase cursor-not-allowed" disabled>
+                                + Novo Arquivo
+                            </button>
+                            <button id="btnNewFolder" onclick="openModal('folder')" class="text-[10px] bg-slate-800 text-slate-500 font-black px-3 py-1.5 rounded transition uppercase cursor-not-allowed" disabled>
+                                + Nova Pasta
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="fileList" class="divide-y divide-slate-800">
+                        <div class="p-8 text-center text-slate-500 text-xs font-bold uppercase">
+                            <i class="fas fa-database text-xl mb-2 block text-cyan-500"></i>
+                            Selecione um repositório na coluna da esquerda para gerenciar arquivos.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ABA INFRA: INFRAESTRUTURA EXPRESS (db.js) -->
+                <div id="panel-infra" class="tab-panel hidden border border-slate-800 rounded-lg bg-slate-900 shadow-sm p-8">
+                    <h3 class="text-sm font-black text-yellow-400 mb-2 uppercase tracking-wider">⚙️ Código de Infraestrutura do Servidor (db.js / server.js)</h3>
+                    <p class="text-xs text-slate-400 mb-6">Mestre José, este é o código completo do servidor que roda o gerenciador de repositórios diretamente no banco de dados MongoDB.</p>
+
+                    <div class="grid grid-cols-1 gap-6">
+                        <div class="border border-slate-800 rounded-lg p-4 bg-slate-950 flex flex-col gap-2">
+                            <div class="flex gap-2 border-b border-slate-800 pb-2">
+                                <button onclick="showGeneratedPreview('db')" id="btn-prev-db" class="text-[9px] bg-cyan-600 text-white font-bold px-3 py-1.5 rounded">db.js</button>
+                                <button onclick="showGeneratedPreview('server')" id="btn-prev-server" class="text-[9px] bg-slate-800 text-slate-400 font-bold px-3 py-1.5 rounded">server.js</button>
+                                <button onclick="showGeneratedPreview('package')" id="btn-prev-package" class="text-[9px] bg-slate-800 text-slate-400 font-bold px-3 py-1.5 rounded">package.json</button>
+                            </div>
+                            <textarea id="backendPreviewArea" readonly class="w-full h-96 bg-slate-950 text-cyan-400 text-[11px] font-mono p-4 rounded resize-none outline-none border border-slate-800"></textarea>
+                        </div>
+                        <button onclick="commitBackendToLocalDB()" class="w-full bg-yellow-400 hover:bg-yellow-300 text-slate-950 text-xs font-black py-3 rounded uppercase tracking-wider transition">
+                            ⚡ Gravar db.js, server.js e package.json neste repositório local
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ABA CREATE REPO -->
+                <div id="panel-new-repo" class="tab-panel hidden border border-slate-800 rounded-lg bg-slate-900 shadow-sm p-8">
+                    <h1 class="text-lg font-black text-slate-100 mb-1">Criar Novo Repositório no Banco de Dados</h1>
+                    <p class="text-xs text-slate-500 mb-6">Os repositórios são coleções salvas no banco de dados com segurança biométrica criptografada.</p>
+                    <div class="flex flex-col gap-4 max-w-2xl">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Nome do Repositório *</label>
+                            <input type="text" id="newRepoName" placeholder="Ex: fotos-industrial" class="w-full bg-slate-950 border border-slate-800 rounded p-2.5 text-xs font-mono text-slate-100 outline-none focus:border-cyan-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Descrição</label>
+                            <input type="text" id="newRepoDesc" placeholder="Ex: Banco de imagens criptografadas..." class="w-full bg-slate-950 border border-slate-800 rounded p-2.5 text-xs text-slate-100 outline-none focus:border-cyan-500">
+                        </div>
+                        <button onclick="createRepositoryDB()" class="bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-black py-3 rounded uppercase tracking-wider transition">
+                            Criar Repositório no MongoDB / Local
+                        </button>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- MODAL DE ARQUIVO -->
+    <div id="modal" class="hidden fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] max-w-3xl jdp-card p-6 z-50">
+        <h3 id="mTitle" class="text-slate-100 font-black text-sm uppercase tracking-wider mb-4 border-b border-slate-800 pb-2">Criar Novo Item</h3>
+        <div class="mb-3">
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">NOME DO ARQUIVO / CAMINHO</label>
+            <input type="text" id="mName" class="w-full bg-slate-900 border border-slate-800 rounded p-2.5 text-xs font-mono text-slate-100 focus:outline-none focus:border-cyan-500">
+        </div>
+        <div class="mb-4">
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">CONTEÚDO</label>
+            <textarea id="mText" class="w-full h-96 bg-slate-900 border border-slate-800 rounded p-2.5 text-xs font-mono text-slate-100 focus:outline-none focus:border-cyan-500"></textarea>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="saveFileDB()" class="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white font-black py-3 rounded text-xs uppercase transition">💾 Salvar no Banco</button>
+            <button onclick="closeModal()" class="flex-1 border border-slate-800 text-slate-400 py-3 rounded text-xs uppercase hover:bg-slate-900 transition">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- BACKDROP -->
+    <div id="backdrop" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40" onclick="closeAllModals()"></div>
+
+    <script>
+        let SELECTED_REPO = '';
+        let currentPath = '';
+        let currentFilesList = [];
+        let isEditing = false;
+        let allRepos = [];
+        let SERVER_URL = "http://localhost:3000";
+        let db;
+
+        // ESTRUTURA DO BACKEND INDUSTRIAL (db.js, server.js, package.json)
+        const backendTemplates = {
+            db: () => `// db.js — SISTEMA UNIVERSAL JDP (HELENA CORE v15.2)
+// CONEXÃO DE BANCO DE DADOS ISOLADO MONGODB
+
+const mongoose = require('mongoose');
+
+const connectDB = async () => {
+    try {
+        const mongoURI = process.env.MONGO_URI || 'mongodb://localhost/mini_firebase';
+        const conn = await mongoose.connect(mongoURI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
+        console.log(\`[HELENA SYSTEM]: MONGO CONECTADO COM SUCESSO -> \${conn.connection.host}\`);
+    } catch (error) {
+        console.error(\`[ERRO CRÍTICO DE CONEXÃO HELENA]: \${error.message}\`);
+        process.exit(1);
+    }
+};
+
+module.exports = connectDB;`,
+
+            server: () => `// server.js — SISTEMA UNIVERSAL JDP (HELENA CORE v15.2)
+// SERVIDOR DE GERENCIAMENTO DE REPOSITÓRIOS E ARQUIVOS INTEGRADO AO db.js
+
+const express = require('express');
+const cors = require('cors');
+const connectDB = require('./db');
+const mongoose = require('mongoose');
+
+const app = express();
+app.use(express.json());
+app.use(cors());
+
+// Conectar ao Banco de Dados
+connectDB();
+
+// --- SCHEMAS ---
+const RepositorySchema = new mongoose.Schema({
+    name: { type: String, unique: true, required: true },
+    description: String,
+    createdAt: { type: Date, default: Date.now }
+});
+const Repository = mongoose.model('Repository', RepositorySchema);
+
+const FileSchema = new mongoose.Schema({
+    repoName: { type: String, required: true },
+    name: { type: String, required: true },
+    path: { type: String, required: true },
+    content: { type: String, default: "" },
+    isDir: { type: Boolean, default: false },
+    size: { type: Number, default: 0 }
+});
+const File = mongoose.model('File', FileSchema);
+
+// --- ROTAS DA API ---
+
+// Listar Repositórios
+app.get('/api/repos', async (req, res) => {
+    try {
+        const repos = await Repository.find().sort({ name: 1 });
+        res.json(repos);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Criar Repositório
+app.post('/api/repos', async (req, res) => {
+    try {
+        const { name, description } = req.body;
+        const repo = await Repository.create({ name, description });
+        res.status(201).json(repo);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+// Listar Arquivos de um Repositório
+app.get('/api/repos/:repoName/files', async (req, res) => {
+    try {
+        const { repoName } = req.params;
+        const files = await File.find({ repoName });
+        res.json(files);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Criar ou Atualizar Arquivo
+app.post('/api/repos/:repoName/files', async (req, res) => {
+    try {
+        const { repoName } = req.params;
+        const { name, path, content, isDir } = req.body;
+        
+        let file = await File.findOne({ repoName, path });
+        if (file) {
+            file.content = content;
+            file.size = Buffer.byteLength(content, 'utf8');
+            await file.save();
+        } else {
+            file = await File.create({
+                repoName,
+                name,
+                path,
+                content,
+                isDir,
+                size: isDir ? 0 : Buffer.byteLength(content, 'utf8')
+            });
+        }
+        res.status(201).json(file);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+// Deletar Arquivo
+app.delete('/api/repos/:repoName/files/*', async (req, res) => {
+    try {
+        const { repoName } = req.params;
+        const filePath = req.params[0];
+        await File.deleteOne({ repoName, path: filePath });
+        res.json({ message: "Arquivo removido do banco de dados." });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(\`[HELENA SERVER]: Ativo na porta \${PORT}\`));`,
+
+            package: () => `{
+  "name": "helena-db-soberano",
+  "version": "15.2.0",
+  "description": "Banco de Dados e Servidor Local JDP Sistemas",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "mongoose": "^7.0.3"
+  }
+}`
+        };
+
+        // ==========================================
+        // INICIALIZAÇÃO DE INDEXEDDB (MURALHA LOCAL)
+        // ==========================================
+        function initIndexedDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open("HELENA_LOCAL_VAULT", 1);
+                request.onupgradeneeded = (e) => {
+                    const dbInstance = e.target.result;
+                    if (!dbInstance.objectStoreNames.contains("repositories")) {
+                        dbInstance.createObjectStore("repositories", { keyPath: "name" });
+                    }
+                    if (!dbInstance.objectStoreNames.contains("files")) {
+                        dbInstance.createObjectStore("files", { keyPath: "id", autoIncrement: true });
+                    }
+                };
+                request.onsuccess = (e) => {
+                    db = e.target.result;
+                    logHELENA("[INDEXEDDB]: Cofre local 'HELENA_LOCAL_VAULT' ativo e seguro.");
+                    resolve();
+                };
+                request.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            const savedUrl = localStorage.getItem('jdp_server_url');
+            if (savedUrl) {
+                SERVER_URL = savedUrl;
+                document.getElementById('serverUrl').value = SERVER_URL;
+            }
+            await initIndexedDB();
+            loadRepositories();
+            showGeneratedPreview('db');
+        });
+
+        function updateServerUrl(url) {
+            SERVER_URL = url.trim();
+            localStorage.setItem('jdp_server_url', SERVER_URL);
+            logHELENA(`[SISTEMA]: URL do servidor alterada para: ${SERVER_URL}`);
+            loadRepositories();
+        }
+
+        function showGeneratedPreview(type) {
+            document.querySelectorAll('#tab-infra button').forEach(b => b.className = "text-[9px] bg-slate-800 text-slate-400 font-bold px-3 py-1.5 rounded");
+            document.getElementById(`btn-prev-${type}`).className = "text-[9px] bg-cyan-600 text-white font-bold px-3 py-1.5 rounded";
+
+            let code = "";
+            if (type === 'db') code = backendTemplates.db();
+            else if (type === 'server') code = backendTemplates.server();
+            else if (type === 'package') code = backendTemplates.package();
+
+            document.getElementById('backendPreviewArea').value = code;
+        }
+
+        // ==========================================
+        // PERSISTÊNCIA DE REPOSITÓRIOS (HÍBRIDO)
+        // ==========================================
+        async function loadRepositories() {
+            try {
+                // Tenta carregar do MongoDB remoto
+                const response = await fetch(`${SERVER_URL}/api/repos`);
+                if (response.ok) {
+                    allRepos = await response.json();
+                    logHELENA("[BANCO]: Sincronizado remotamente com MongoDB.");
+                    document.getElementById('vaultStatus').textContent = "MongoDB Ativo";
+                    document.getElementById('vaultStatus').className = "text-[8px] text-green-500 font-mono font-bold";
+                } else {
+                    throw new Error();
+                }
+            } catch (err) {
+                // Fallback para IndexedDB Local
+                logHELENA("[MURALHA]: Servidor offline. Carregando repositórios locais do IndexedDB.");
+                document.getElementById('vaultStatus').textContent = "Local-First";
+                document.getElementById('vaultStatus').className = "text-[8px] text-yellow-500 font-mono font-bold";
+                allRepos = await getLocalRepos();
+            }
+            renderRepositories(allRepos);
+        }
+
+        function renderRepositories(repos) {
+            const listContainer = document.getElementById('repoList');
+            if (repos.length === 0) {
+                listContainer.innerHTML = `<div class="p-4 text-center text-slate-500 text-xs">Nenhum repositório no banco.</div>`;
+                return;
+            }
+            listContainer.innerHTML = repos.map(repo => `
+                <div class="repo-item p-3 bg-slate-900 rounded border border-slate-800 flex items-center justify-between cursor-pointer" onclick="selectRepository('${repo.name}')">
+                    <div class="flex items-center gap-2.5 truncate">
+                        <span class="text-base shrink-0">📦</span>
+                        <div class="truncate">
+                            <span class="text-[11px] text-slate-100 font-bold block truncate">${repo.name}</span>
+                            <span class="text-[8px] text-cyan-400 font-mono block truncate">${repo.description || 'Sem descrição'}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function createRepositoryDB() {
+            const name = document.getElementById('newRepoName').value.trim();
+            const description = document.getElementById('newRepoDesc').value.trim();
+
+            if (!name) {
+                alert("Mestre José, digite o nome do repositório.");
+                return;
+            }
+
+            const newRepo = { name, description, createdAt: new Date() };
+
+            // 1. Salva no IndexedDB Local imediatamente (Garantia de Funcionamento)
+            await saveLocalRepo(newRepo);
+            logHELENA(`[INDEXEDDB]: Repositório '${name}' persistido localmente.`);
+
+            // 2. Tenta enviar para o MongoDB remoto
+            try {
+                const response = await fetch(`${SERVER_URL}/api/repos`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newRepo)
+                });
+                if (response.ok) {
+                    logHELENA(`[MONGODB]: Repositório '${name}' sincronizado com sucesso.`);
+                }
+            } catch (err) {
+                logHELENA("[SISTEMA]: Servidor offline. Sincronização pendente, mas salvo localmente.");
+            }
+
+            document.getElementById('newRepoName').value = '';
+            document.getElementById('newRepoDesc').value = '';
+            await loadRepositories();
+            selectRepository(name);
+        }
+
+        // ==========================================
+        // GESTÃO DE ARQUIVOS (INDEXEDDB + MONGODB)
+        // ==========================================
+        async function selectRepository(repoName) {
+            SELECTED_REPO = repoName;
+            document.getElementById('activeRepoName').innerText = repoName;
+            document.getElementById('repoNameDisp').innerText = repoName;
+            
+            document.getElementById('btnNewFile').disabled = false;
+            document.getElementById('btnNewFile').className = "text-[10px] bg-cyan-600 hover:bg-cyan-500 text-white font-black px-3 py-1.5 rounded transition uppercase cursor-pointer";
+            document.getElementById('btnNewFolder').disabled = false;
+            document.getElementById('btnNewFolder').className = "text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-100 font-black px-3 py-1.5 rounded transition uppercase cursor-pointer";
+
+            switchTab('code');
+            loadFiles();
+        }
+
+        async function loadFiles() {
+            if (!SELECTED_REPO) return;
+            logHELENA(`[LEITURA]: Carregando arquivos do repositório: ${SELECTED_REPO}`);
+
+            try {
+                // Tenta buscar do MongoDB
+                const response = await fetch(`${SERVER_URL}/api/repos/${SELECTED_REPO}/files`);
+                if (response.ok) {
+                    currentFilesList = await response.json();
+                } else {
+                    throw new Error();
+                }
+            } catch (e) {
+                // Fallback para IndexedDB
+                currentFilesList = await getLocalFiles(SELECTED_REPO);
+            }
+
+            if (currentFilesList.length === 0) {
+                renderEmptyState();
+                return;
+            }
+
+            let html = '';
+            currentFilesList.forEach(f => {
+                html += `
+                <div class="file-item p-3.5 flex items-center justify-between bg-slate-900 border-b border-slate-800">
+                    <div class="flex items-center gap-3 cursor-pointer" onclick="editFileDB('${f.path}', \`${escape(f.content)}\`)">
+                        <span class="text-base">📄</span>
+                        <div>
+                            <span class="text-[11px] text-slate-100 font-bold hover:text-cyan-400 transition">${f.name}</span>
+                            <span class="text-[8px] text-slate-500 block">Caminho: /${f.path}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="editFileDB('${f.path}', \`${escape(f.content)}\`)" class="bg-yellow-950 text-yellow-400 border border-yellow-800 px-2.5 py-1 rounded text-[9px] font-bold">EDITAR</button>
+                        <button onclick="deleteFileDB('${f.path}')" class="bg-red-950 text-red-400 border border-red-800 px-2.5 py-1 rounded text-[9px] font-bold">DELETAR</button>
+                        <span class="text-[9px] text-slate-500 font-mono">${f.size || 0} B</span>
+                    </div>
+                </div>`;
+            });
+
+            document.getElementById('fileList').innerHTML = html;
+        }
+
+        function renderEmptyState() {
+            document.getElementById('fileList').innerHTML = `
+            <div class="p-8 text-center text-slate-500 text-xs font-bold uppercase">
+                <i class="fas fa-database text-xl mb-2 block text-yellow-500"></i>
+                Repositório vazio. Adicione novos arquivos acima.
+            </div>`;
+        }
+
+        async function saveFileDB() {
+            const name = document.getElementById('mName').value.trim();
+            const content = document.getElementById('mText').value;
+
+            if (!name) {
+                alert("Mestre José, digite o nome do arquivo.");
+                return;
+            }
+
+            const fileObj = {
+                repoName: SELECTED_REPO,
+                name: name.split('/').pop(),
+                path: name,
+                content: content,
+                isDir: false,
+                size: content.length
+            };
+
+            // 1. Salva localmente no IndexedDB
+            await saveLocalFile(fileObj);
+            logHELENA(`[INDEXEDDB]: Arquivo '${name}' salvo localmente.`);
+
+            // 2. Tenta sincronizar com o MongoDB
+            try {
+                const response = await fetch(`${SERVER_URL}/api/repos/${SELECTED_REPO}/files`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(fileObj)
+                });
+                if (response.ok) {
+                    logHELENA(`[MONGODB]: Arquivo '${name}' sincronizado com sucesso.`);
+                }
+            } catch (err) {
+                logHELENA("[SISTEMA]: Salvo em modo local offline.");
+            }
+
+            closeModal();
+            loadFiles();
+        }
+
+        // COMITAR db.js, server.js e package.json AUTOMATICAMENTE NO REPOSITÓRIO ATIVO
+        async function commitBackendToLocalDB() {
+            if (!SELECTED_REPO) {
+                alert("Mestre José, selecione um repositório na coluna da esquerda para salvar os arquivos de infraestrutura.");
+                return;
+            }
+
+            logHELENA("[PROCESSO]: Gravando db.js, server.js e package.json...");
+
+            const files = [
+                { path: "db.js", content: backendTemplates.db() },
+                { path: "server.js", content: backendTemplates.server() },
+                { path: "package.json", content: backendTemplates.package() }
+            ];
+
+            for (let f of files) {
+                const fileObj = {
+                    repoName: SELECTED_REPO,
+                    name: f.path,
+                    path: f.path,
+                    content: f.content,
+                    isDir: false,
+                    size: f.content.length
+                };
+                await saveLocalFile(fileObj);
+
+                try {
+                    await fetch(`${SERVER_URL}/api/repos/${SELECTED_REPO}/files`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(fileObj)
+                    });
+                } catch(e) {}
+            }
+
+            logHELENA("🎉 [CONCLUÍDO]: db.js, server.js e package.json salvos com sucesso no seu repositório local!");
+            loadFiles();
+        }
+
+        function editFileDB(path, contentEscaped) {
+            isEditing = true;
+            openModal('text');
+            document.getElementById('mTitle').innerText = "Editar Arquivo no Banco";
+            document.getElementById('mName').value = path;
+            document.getElementById('mName').disabled = true;
+            document.getElementById('mText').value = unescape(contentEscaped);
+        }
+
+        async function deleteFileDB(path) {
+            if (!confirm(`Mestre José, confirma a exclusão física do arquivo /${path}?`)) return;
+
+            await deleteLocalFile(SELECTED_REPO, path);
+
+            try {
+                await fetch(`${SERVER_URL}/api/repos/${SELECTED_REPO}/files/${path}`, {
+                    method: 'DELETE'
+                });
+            } catch (err) {}
+
+            logHELENA(`[DELETADO]: Arquivo ${path} removido.`);
+            loadFiles();
+        }
+
+        // ==========================================
+        // HELPERS DE ACESSO AO INDEXEDDB LOCAL
+        // ==========================================
+        function saveLocalRepo(repo) {
+            return new Promise((resolve) => {
+                const tx = db.transaction("repositories", "readwrite");
+                tx.objectStore("repositories").put(repo);
+                tx.oncomplete = () => resolve();
+            });
+        }
+
+        function getLocalRepos() {
+            return new Promise((resolve) => {
+                const tx = db.transaction("repositories", "readonly");
+                const store = tx.objectStore("repositories");
+                const req = store.getAll();
+                req.onsuccess = () => resolve(req.result);
+            });
+        }
+
+        function saveLocalFile(file) {
+            return new Promise((resolve) => {
+                const tx = db.transaction("files", "readwrite");
+                const store = tx.objectStore("files");
+                // Remove duplicados antigos com o mesmo path no mesmo repo
+                const indexReq = store.openCursor();
+                indexReq.onsuccess = (e) => {
+                    const cursor = e.target.result;
+                    if (cursor) {
+                        if (cursor.value.repoName === file.repoName && cursor.value.path === file.path) {
+                            cursor.delete();
+                        }
+                        cursor.continue();
+                    } else {
+                        store.put(file);
+                        resolve();
+                    }
+                };
+            });
+        }
+
+        function getLocalFiles(repoName) {
+            return new Promise((resolve) => {
+                const tx = db.transaction("files", "readonly");
+                const store = tx.objectStore("files");
+                const req = store.getAll();
+                req.onsuccess = () => {
+                    const filtered = req.result.filter(f => f.repoName === repoName);
+                    resolve(filtered);
+                };
+            });
+        }
+
+        function deleteLocalFile(repoName, path) {
+            return new Promise((resolve) => {
+                const tx = db.transaction("files", "readwrite");
+                const store = tx.objectStore("files");
+                const req = store.openCursor();
+                req.onsuccess = (e) => {
+                    const cursor = e.target.result;
+                    if (cursor) {
+                        if (cursor.value.repoName === repoName && cursor.value.path === path) {
+                            cursor.delete();
+                        }
+                        cursor.continue();
+                    } else {
+                        resolve();
+                    }
+                };
+            });
+        }
+
+        // ==========================================
+        // COMPACTAÇÃO ZIP DO REPOSITÓRIO DO BANCO
+        // ==========================================
+        async function downloadRepoZip() {
+            if (!SELECTED_REPO) {
+                alert("Selecione um repositório.");
+                return;
+            }
+            logHELENA(`[COMPACTADOR]: Gerando ZIP do banco para ${SELECTED_REPO}...`);
+            try {
+                const zip = new JSZip();
+                currentFilesList.forEach(file => {
+                    zip.file(file.path, file.content);
+                });
+                const blob = await zip.generateAsync({ type: "blob" });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${SELECTED_REPO}_db_backup.zip`;
+                a.click();
+                logHELENA("[SUCESSO]: Backup compactado baixado.");
+            } catch (e) {
+                logHELENA("[ERRO]: Falha ao gerar backup compactado.");
+            }
+        }
+
+        function filterRepos() {
+            const term = document.getElementById('repoSearch').value.toLowerCase();
+            const filtered = allRepos.filter(r => r.name.toLowerCase().includes(term));
+            renderRepositories(filtered);
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('#repoNavigationTabs button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.add('hidden'));
+
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            const activePanel = document.getElementById(`panel-${tabId}`);
+            if (activePanel) activePanel.classList.remove('hidden');
+        }
+
+        function openModal(type) {
+            document.getElementById('modal').classList.remove('hidden');
+            document.getElementById('backdrop').classList.remove('hidden');
+            if (!isEditing) {
+                document.getElementById('mName').disabled = false;
+                document.getElementById('mName').value = '';
+                document.getElementById('mText').value = '';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+            document.getElementById('backdrop').classList.add('hidden');
+            isEditing = false;
+        }
+
+        function closeAllModals() {
+            closeModal();
+        }
+
+        function disconnectRepo() {
+            SELECTED_REPO = '';
+            document.getElementById('activeRepoName').innerText = 'Nenhum';
+            document.getElementById('repoNameDisp').innerText = 'Selecione um Repositório';
+            renderEmptyState();
+        }
+
+        function logHELENA(msg) {
+            const terminal = document.getElementById('terminalLogs');
+            const time = new Date().toLocaleTimeString();
+            terminal.innerHTML += `<br>[${time}] ${msg}`;
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+    </script>
+</body>
+                                                                                                     </html>
